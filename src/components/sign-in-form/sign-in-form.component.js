@@ -3,6 +3,7 @@ import Button from "../button/button.component";
 import { useState } from "react";
 import {
   createUserDocumentFromAuth,
+  signInAuthWithEmailAndPassword,
   signInWithGooglePopup,
 } from "../../utils/firebase/firebase.utils";
 import "./sign-in-form.styles.scss";
@@ -24,10 +25,26 @@ const SignInForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const response = await signInAuthWithEmailAndPassword(email, password);
+      console.log(response);
       resetFormFields();
     } catch (error) {
-      console.log(error);
+      switch (error.code) {
+        case "auth/user-not-found":
+          alert("User does not exist");
+          break;
+        case "auth/wrong-password":
+          alert("Wrong password");
+          break;
+        default:
+          console.log(error);
+      }
     }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormFields({ ...formFields, [name]: value });
   };
 
   const signInWithGoogle = async () => {
@@ -46,6 +63,7 @@ const SignInForm = () => {
           name="email"
           label="Email"
           value={email}
+          onChange={handleChange}
           required
         />
         <FormInput
@@ -53,11 +71,12 @@ const SignInForm = () => {
           name="password"
           label="Password"
           value={password}
+          onChange={handleChange}
           required
         />
         <div className="buttons-container">
           <Button>Sign In</Button>
-          <Button onClick={signInWithGoogle} buttonType="google">
+          <Button type="button" onClick={signInWithGoogle} buttonType="google">
             Google Sign In
           </Button>
         </div>
